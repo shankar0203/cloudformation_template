@@ -1,0 +1,10 @@
+Resources: 
+ shankar:
+   Type: AWS::S3::Bucket
+   Properties: 
+     AccessControl: Private 
+     BucketName: shankar-s3-test-cft
+    
+     Tags:
+       - Key: Name
+         Value: shankar

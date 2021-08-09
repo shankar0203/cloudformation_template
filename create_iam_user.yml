@@ -1,0 +1,37 @@
+CREATE A IAM USER BY USING JSON FORMAT
+-----------------------------------------
+"Resources" : {
+    "shankaruser" : {
+        "Type" : "AWS::IAM::User",
+        "Properties" :{
+            "LoginProfile" :{"Password": "Shankarsoundarpandai0!"}
+        }
+    }
+}
+
+
+CREATE A IAM USER ,GROUP AND POLICY
+--------------------------------------
+
+Resources:
+  Newuser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: Newuser01
+      LoginProfile:
+        Password: Shankarsoundarpandai0!
+      Groups:
+        - !Ref NEWGROUP
+    
+  NEWGROUP:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: Newgroup1
+      Policies:
+        - PolicyName: Newpolicy
+          PolicyDocument:
+             Statement:
+                - Effect: Allow
+                  Action:
+                    - S3:Get*
+                  Resource: "*"

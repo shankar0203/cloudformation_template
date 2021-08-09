@@ -1,0 +1,12 @@
+
+Resources: 
+  MyEc2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-04b6c97b14c54de18
+      InstanceType: t2.micro
+      KeyName: shankar_key
+      SubnetId: subnet-0326ae07bba92de8b
+      Tags:
+        - Key: Name
+          Value: Test

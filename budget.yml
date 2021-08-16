@@ -1,0 +1,130 @@
+
+create a budget , budget action, iam role and iam policy
+
+
+
+Parameters:
+  RoleName: 
+    Type: String
+    Default: arn:aws:iam::718849426992:role/RoleTest01
+
+  
+
+Resources:
+  MyRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: RoleTest01
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - budgets.amazonaws.com
+            Action:
+            - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+            - Sid: Stmt922116106069
+              Effect: Allow
+              Action: "*"
+              Resource: "*"
+  RootInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: /
+      Roles:
+        - !Ref MyRole
+
+
+  MyPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: Budgetpolicy01 
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - ec2:DescribeImages
+              - ec2:AuthorizeSecurityGroupIngress
+              - ec2:DescribeInstances
+              - ec2:DescribeVpcs
+              - ec2:CreateKeyPair
+              - ec2:CreateSecurityGroup
+              - ec2:DescribeInstanceTypes
+              - ec2:DescribeSubnets
+              - ec2:DescribeKeyPairs
+              - ec2:DescribeSecurityGroups
+            Resource: "*"
+          - Effect: Deny
+            Action: ec2:RunInstances
+            Resource: "*"
+            Condition:
+              ForAnyValue:StringNotEquals:
+                ec2:InstanceType: t2.micro
+
+
+
+  Budgettest:
+    Type: "AWS::Budgets::Budget"
+    Properties:
+      Budget:
+        BudgetLimit:
+          Amount: 7
+          Unit: USD
+        TimeUnit: MONTHLY
+        TimePeriod:
+          Start: 1627776000
+          End: 1630411200
+        BudgetType: COST
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 99
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: shankar.soundarpandai@relevancelab.com
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 80
+          Subscribers:
+          - SubscriptionType: EMAIL
+            Address: shankarex99@gmail.com
+
+  BudgetAction:
+    Type: AWS::Budgets::BudgetsAction
+    Properties:
+      ActionThreshold:
+        Type: PERCENTAGE
+        Value: 80.00
+      ActionType: APPLY_IAM_POLICY
+      ApprovalModel: MANUAL
+      BudgetName: !Ref Budgettest
+      Definition:
+        IamActionDefinition:
+          PolicyArn: !Ref MyPolicy  
+          Users:
+            - shankar
+      ExecutionRoleArn: !Ref RoleName
+      NotificationType:  ACTUAL
+      Subscribers:
+      - Type: EMAIL
+        Address: shankarex99@gmail.com
+
+Outputs:
+  BudgetId:
+    Value: !Ref Budgettest
+
+
+
+
+    
+  

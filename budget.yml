@@ -3,18 +3,12 @@ create a budget , budget action, iam role and iam policy
 
 
 
-Parameters:
-  RoleName: 
-    Type: String
-    Default: arn:aws:iam::718849426992:role/RoleTest01
-
-  
 
 Resources:
-  MyRole:
+  BudgetRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: RoleTest01
+      RoleName: RoleForBudget
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -32,20 +26,21 @@ Resources:
             Statement:
             - Sid: Stmt922116106069
               Effect: Allow
-              Action: "*"
+              Action: 
+                - aws-portal:ModifyBilling
+                - ec2:DescribeInstances
+                - iam:*
+                - organizations:ListAccounts
+                - organizations:ListOrganizationalUnitsForParent
+                - organizations:ListPolicies
+                - organizations:ListRoots
+                - rds:DescribeDBInstances
+                - sns:ListTopics
               Resource: "*"
-  RootInstanceProfile:
-    Type: 'AWS::IAM::InstanceProfile'
-    Properties:
-      Path: /
-      Roles:
-        - !Ref MyRole
-
-
-  MyPolicy:
+  BudgetPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: Budgetpolicy01 
+      ManagedPolicyName: PolicyForBudget 
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -63,32 +58,41 @@ Resources:
               - ec2:DescribeSecurityGroups
             Resource: "*"
           - Effect: Deny
+            Action: 
+              - rds:*
+              - s3:*
+              - vpc:*
+            Resource: "*"
+
+          - Effect: Deny
             Action: ec2:RunInstances
             Resource: "*"
             Condition:
               ForAnyValue:StringNotEquals:
                 ec2:InstanceType: t2.micro
-
-
-
-  Budgettest:
+  Budget:
     Type: "AWS::Budgets::Budget"
     Properties:
       Budget:
         BudgetLimit:
-          Amount: 7
+          Amount: 500
           Unit: USD
         TimeUnit: MONTHLY
         TimePeriod:
           Start: 1627776000
-          End: 1630411200
         BudgetType: COST
       NotificationsWithSubscribers:
         - Notification:
             NotificationType: ACTUAL
             ComparisonOperator: GREATER_THAN
-            Threshold: 99
+            Threshold: 95
           Subscribers:
+            - SubscriptionType: EMAIL
+              Address: anil.sriram@relevancelab.com
+            - SubscriptionType: EMAIL
+              Address: mamatha.anand@relevancelab.com
+            - SubscriptionType: EMAIL
+              Address: suresh.panneerselvam@relevancelab.com           
             - SubscriptionType: EMAIL
               Address: shankar.soundarpandai@relevancelab.com
         - Notification:
@@ -97,31 +101,53 @@ Resources:
             Threshold: 80
           Subscribers:
           - SubscriptionType: EMAIL
-            Address: shankarex99@gmail.com
-
+            Address: anil.sriram@relevancelab.com
+          - SubscriptionType: EMAIL
+            Address: mamatha.anand@relevancelab.com       
+          - SubscriptionType: EMAIL
+            Address: suresh.panneerselvam@relevancelab.com           
+          - SubscriptionType: EMAIL
+            Address: shankar.soundarpandai@relevancelab.com
   BudgetAction:
     Type: AWS::Budgets::BudgetsAction
     Properties:
       ActionThreshold:
         Type: PERCENTAGE
-        Value: 80.00
+        Value: 99.00
       ActionType: APPLY_IAM_POLICY
-      ApprovalModel: MANUAL
-      BudgetName: !Ref Budgettest
+      ApprovalModel: AUTOMATIC
+      BudgetName: !Ref Budget
       Definition:
         IamActionDefinition:
-          PolicyArn: !Ref MyPolicy  
+          PolicyArn: !Ref BudgetPolicy  
           Users:
+            - dheepa
+            - haritha
+            - kumaran
+            - manikandan
+            - prasanna
+            - suresh
             - shankar
-      ExecutionRoleArn: !Ref RoleName
+      ExecutionRoleArn: !GetAtt BudgetRole.Arn
       NotificationType:  ACTUAL
       Subscribers:
       - Type: EMAIL
-        Address: shankarex99@gmail.com
-
+        Address: anil.sriram@relevancelab.com
+      - Type: EMAIL
+        Address: mamatha.anand@relevancelab.com      
+      - Type: EMAIL
+        Address: suresh.panneerselvam@relevancelab.com
+      - Type: EMAIL
+        Address: shankar.soundarpandai@relevancelab.com
 Outputs:
   BudgetId:
-    Value: !Ref Budgettest
+    Value: !Ref Budget
+
+
+
+
+    
+  
 
 
 
